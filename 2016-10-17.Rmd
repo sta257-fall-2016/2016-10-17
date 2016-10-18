@@ -1,0 +1,159 @@
+---
+title: "STA257"
+author: "Neil Montgomery | HTML is official | PDF versions good for in-class use only"
+date: "Last edited: `r format(Sys.time(), '%Y-%m-%d %H:%M')`"
+output: 
+  ioslides_presentation: 
+    css: '../styles.css' 
+    widescreen: true 
+    transition: 0.001
+---
+\newcommand\given[1][]{\:#1\vert\:}
+\newcommand\P[1]{P{\left(#1\right)}}
+
+## some simplified notation
+
+It is common to deal with probabilities of intersections of events relating to random variables. 
+
+$$P(\{X \le 3\} \cap \{Y > 5\})$$
+Usually we omit the braces and use a comma:
+
+$$P(X \le 3,\,Y > 5)$$
+
+## recap
+
+A Poisson process $N(t)$ counts the number of event that happen between "time" 0 and "time" $t$.
+
+The rate per unit time is $\lambda$.
+
+Probability of $k$ events between times $s$ and $t$ are:
+$$P(N(t) - N(s) = k) = \frac{[\lambda(t-s)]^ke^{-\lambda(t-s)}}{k!}$$
+and $N(0)=0$ always, so when dealing with intervals $(0,t]$ we can just use 
+$$P(N(t)=k) = \frac{[\lambda t  ]^ke^{-\lambda t}}{k!}.$$
+
+## practical examples (stolen from *Schay*)
+
+
+Q7.1.1 (p. 236) Customers enter a store at a rate of 1 per minute. Find the probabilities that:
+
+1. More than one will enter in the first minute. ***(from last time: `r 1-round(ppois(1,1),3)`)***
+2. More than two will enter in the first two minutes. (`r round(1-ppois(2, 2), 3)`)
+3. More than one will enter in each of the first two minutes. $\left(`r 1-round(ppois(1,1),3)`^2\right)$
+
+# DISASTROUS TREND SHOCKER PANIC HEADLINE
+
+## which ones are "completely random" (Poisson?) { .build }
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', fig.width=8}
+source("sim_proc.R")
+
+two_proc %>% 
+  ggplot(aes(x=S, y=Run)) + xlim(0, 20) + geom_point() + 
+  ylab("Replication") + xlab("\"Time\"") + theme_bw()
+
+```
+
+Answer: `r shuffle[1:3]`
+
+# continuous random variables
+
+## from counting to measuring { .build }
+
+Discrete random variables *count* things. 
+
+We need random variables to *measure* things.
+
+Let $X$ be such a random variable. As always it will have a cdf $F(x) = P(X\le x)$, which will turn out to be *continuous*.
+
+Main focus as always is on *distribution*, i.e. the collection of $P(X \in A)$ for $A \subset \mathbb{R}$. 
+
+Let's just worry about intervals and consider things like:
+
+$$P(X \in (a,b]) = P(a < X \le b) = F(b) - F(a).$$
+
+## density
+
+If there is a ("piecewise") continuous function $f$ such that:
+
+$$P(a < X \le b) = F(b) - F(a) = \int_a^b f(x)\,dx$$
+then we say $X$ is "(absolutely) continuous" and has $f$ as its *probability density function* (or pdf, or just density). 
+
+Note: $a$ and $b$ can be $-\infty$ or $\infty$. 
+
+## density functions, meanings, consequences - I{ .build }
+
+Theorem: A pdf completely characterizes a distribution.
+
+Proof: ...
+
+Some corollaries: the cdf $F$ is continuous, $f \ge 0$ (wherever it is continuous), and $\int_{-\infty}^\infty f(x)\,dx = 1$.
+
+Theorem: Any piecewise continuous, non-negative $f$ with $\int f = 1$ can be a density function.
+
+Proof: Too hard...
+
+## density functions, meanings, consequences - II { .build }
+
+Advice: *Always* think of a density as living inside its integral.
+
+Heuristic meaning of $f(x)$ can be: 
+
+$$f(x)\Delta{x} \approx \int_x^{x+\Delta{x}}f(x)\,dx = P(X \in (x, x+\Delta x]).$$
+
+Pictures of densities can be useful, to show relative differences in probabilities. 
+
+## density functions, meanings, consequences - III
+
+If $X$ is continuous, then for all $a \in \mathbb{R}$:
+
+$$P(X = a) = P(X \in (a, a]) = \int_a^a f(x)\,dx = 0$$
+
+Recall from the beginning "pick a random number in (0,1)" and its associated oddities.
+
+For continuous random variables we have these conveniences:
+
+$$P(a < X \le b) = P(a \le X < b) = P(a \le X \le b), \text{ etc.}$$
+
+## example
+
+Pick a number "uniformly" from $(0,1)$ and let $X$ simply be that number. We have:
+
+$$F(x) = P(X \le x) = \begin{cases}
+0 &: x < 0\\
+x &: 0 \le x < 1\\
+1 &: x \ge 1\end{cases}$$
+
+To find the density, just differentiate:
+
+$$f(x) = F'(x) = \begin{cases}
+1 &: 0 \le x < 1\\
+0 &: \text{otherwise}\end{cases}$$
+
+The endpoints don't matter. We say $X$ has a uniform distribution with parameters 0 and 1, or $X\sim\text{Uniform}[0,1]$.
+
+## the $\text{Uniform}[a,b]$ distributions
+
+Nothing special about 0 and 1. Pick a number between $a$ and $b$ and call it $X$. The density and cdf will be:
+
+$$f(x) = \begin{cases}
+\frac{1}{b-a} &: x \in [a,b]\\
+0 &: \text{otherwise};\end{cases}$$
+$$F(x) = \begin{cases}
+0 &: x < a\\
+\frac{x-a}{b-a} &: x \in [a,b]\\
+1 &: x > b.\end{cases}$$
+
+The density is used to calculate probabilities. Say $X \sim\text{Uniform}[-1, 2]$. We can calculate things like: $P(0 < X < 3/2)$, $P(-3 < X \le 0)$, etc.
+
+## an (apparently) artificial example
+
+Suppose $f$ is defined as:
+$$f(x) = \begin{cases}
+cx &: 0<x\le 1,\\
+c(2-x) &: 1 < x \le 2,\\
+0 &: \text{ otherwise.}
+\end{cases}$$
+
+Determine $c$ that makes $f$ a valid density.
+
+If $X$ has $f$ as its density, determine its cdf and calculate $P(0.75 < X < 1.5)$.
